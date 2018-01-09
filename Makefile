@@ -1,6 +1,6 @@
 OPTIMIZE=$(OPT)
 
-ifneq ($(OPTIMIZE), true)
+ifeq ($(OPTIMIZE), false)
 	OPTFLAGS=-g -Wall -Wextra -Werror
 	OBJDIR=build/debug
 else
@@ -8,6 +8,7 @@ else
 	OBJDIR=build/optimized
 endif
 
+LIBFILENAME=libmonetdb5
 DEPSDIR=$(OBJDIR)/deps
 
 CFLAGS=-DLIBGDK -DLIBMAL -DLIBOPTIMIZER -DLIBSTREAM
@@ -23,6 +24,7 @@ ifeq ($(OS),Windows_NT)
 	SOEXT=dll
 	LDFLAGS += -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
 	CFLAGS += -Wno-attributes -Wno-format
+	LIBFLAGS += -Wl,--output-def,$(OBJDIR)/$(LIBFILENAME).def,--out-implib,$(OBJDIR)/$(LIBFILENAME).a
 	CC=gcc
 else
     UNAME_S := $(shell uname -s)
@@ -104,6 +106,7 @@ src/mal/sqlbackend/40_sql.mal
 COBJECTS=\
 $(OBJDIR)/common/stream.o \
 $(OBJDIR)/common/mutils.o \
+$(OBJDIR)/embedded/append.o \
 $(OBJDIR)/embedded/embedded.o \
 $(OBJDIR)/gdk/gdk_aggr.o \
 $(OBJDIR)/gdk/gdk_align.o \
@@ -282,7 +285,7 @@ ODIRS=$(dir $(COBJECTS))
 DDIRS=$(subst $(OBJDIR), $(DEPSDIR), $(ODIRS))
 $(shell mkdir -p $(ODIRS) $(DDIRS))
 
-LIBFILE=build/libmonetdb5.$(SOEXT)
+LIBFILE=$(OBJDIR)/$(LIBFILENAME).$(SOEXT)
 
 .PHONY: all clean test init test $(LIBFILE)
 
@@ -311,16 +314,20 @@ init: sqlparser inlines
 
 test: $(LIBFILE)
 	mkdir -p build/tests 
-	$(CC) $(OPTFLAGS) tests/readme/readme.c -o build/test_readme -Isrc/embedded -Lbuild -lmonetdb5 $(LDFLAGS)
-		$(CC) $(OPTFLAGS) tests/tpchq1/test1.c -o build/test_tpchq1 -Isrc/embedded -Lbuild -lmonetdb5 $(LDFLAGS)
-	$(CC) $(OPTFLAGS) tests/sqlitelogic/sqllogictest.c tests/sqlitelogic/md5.c -o build/test_sqlitelogic -Itests/sqlitelogic -Isrc/embedded -Lbuild -lmonetdb5 $(LDFLAGS)
-	LD_LIBRARY_PATH=build/ DYLD_LIBRARY_PATH=build/ ./build/test_readme
-	LD_LIBRARY_PATH=build/ DYLD_LIBRARY_PATH=build/ ./build/test_tpchq1 $(shell pwd)/tests/tpchq1
-	LD_LIBRARY_PATH=build/ DYLD_LIBRARY_PATH=build/ ./build/test_sqlitelogic  --engine MonetDBLite --halt --verify tests/sqlitelogic/select1.test
-	LD_LIBRARY_PATH=build/ DYLD_LIBRARY_PATH=build/ ./build/test_sqlitelogic  --engine MonetDBLite --halt --verify tests/sqlitelogic/select2.test
-	LD_LIBRARY_PATH=build/ DYLD_LIBRARY_PATH=build/ ./build/test_sqlitelogic  --engine MonetDBLite --halt --verify tests/sqlitelogic/select3.test
-	LD_LIBRARY_PATH=build/ DYLD_LIBRARY_PATH=build/ ./build/test_sqlitelogic  --engine MonetDBLite --halt --verify tests/sqlitelogic/select4.test
-	LD_LIBRARY_PATH=build/ DYLD_LIBRARY_PATH=build/ ./build/test_sqlitelogic  --engine MonetDBLite --halt --verify tests/sqlitelogic/select5.test
+	$(CC) $(OPTFLAGS) tests/readme/readme.c -o $(OBJDIR)/test_readme -Isrc/embedded -L$(OBJDIR) -lmonetdb5 $(LDFLAGS)
+	$(CC) $(OPTFLAGS) tests/readme/readme_append.c -o $(OBJDIR)/test_append -Isrc/embedded -L$(OBJDIR) -lmonetdb5 $(LDFLAGS)
+	$(CC) $(OPTFLAGS) tests/tpchq1/test1.c -o $(OBJDIR)/test_tpchq1 -Isrc/embedded -L$(OBJDIR) -lmonetdb5 $(LDFLAGS)
+	$(CC) $(OPTFLAGS) tests/sqlitelogic/sqllogictest.c tests/sqlitelogic/md5.c -o $(OBJDIR)/test_sqlitelogic -Itests/sqlitelogic -Isrc/embedded -L$(OBJDIR) -lmonetdb5 $(LDFLAGS)
+	LD_LIBRARY_PATH=$(OBJDIR)/ DYLD_LIBRARY_PATH=./$(OBJDIR)/ ./$(OBJDIR)/test_readme
+	rm -rf /tmp/tmpdb/
+	LD_LIBRARY_PATH=$(OBJDIR)/ DYLD_LIBRARY_PATH=./$(OBJDIR)/ ./$(OBJDIR)/test_append /tmp/tmpdb/ 10000000
+	rm -rf ./tmp/tmpdb/
+	LD_LIBRARY_PATH=$(OBJDIR)/ DYLD_LIBRARY_PATH=./$(OBJDIR)/ ./$(OBJDIR)/test_tpchq1 $(shell pwd)/tests/tpchq1
+	LD_LIBRARY_PATH=$(OBJDIR)/ DYLD_LIBRARY_PATH=./$(OBJDIR)/ ./$(OBJDIR)/test_sqlitelogic  --engine MonetDBLite --halt --verify tests/sqlitelogic/select1.test
+	LD_LIBRARY_PATH=$(OBJDIR)/ DYLD_LIBRARY_PATH=./$(OBJDIR)/ ./$(OBJDIR)/test_sqlitelogic  --engine MonetDBLite --halt --verify tests/sqlitelogic/select2.test
+	LD_LIBRARY_PATH=$(OBJDIR)/ DYLD_LIBRARY_PATH=./$(OBJDIR)/ ./$(OBJDIR)/test_sqlitelogic  --engine MonetDBLite --halt --verify tests/sqlitelogic/select3.test
+	LD_LIBRARY_PATH=$(OBJDIR)/ DYLD_LIBRARY_PATH=./$(OBJDIR)/ ./$(OBJDIR)/test_sqlitelogic  --engine MonetDBLite --halt --verify tests/sqlitelogic/select4.test
+	LD_LIBRARY_PATH=$(OBJDIR)/ DYLD_LIBRARY_PATH=./$(OBJDIR)/ ./$(OBJDIR)/test_sqlitelogic  --engine MonetDBLite --halt --verify tests/sqlitelogic/select5.test
 	
 
 DEPS = $(shell find $(DEPSDIR) -name "*.d")
@@ -331,4 +338,4 @@ $(OBJDIR)/%.o: src/%.c
 	$(CC) $(CFLAGS) -DMONETDBLITE_COMPILE -MMD -MF $(subst $(OBJDIR),$(DEPSDIR),$(subst .o,.d,$@)) $(INCLUDE_FLAGS) $(OPTFLAGS) -c $(subst $(OBJDIR)/,src/,$(subst .o,.c,$@)) -o $@
 
 $(LIBFILE): $(COBJECTS) 
-	$(CC) $(LDFLAGS) $(COBJECTS) $(OPTFLAGS) -o $(LIBFILE) -shared
+	$(CC) $(LDFLAGS) $(COBJECTS) $(OPTFLAGS) -o $(LIBFILE) -shared $(LIBFLAGS)
