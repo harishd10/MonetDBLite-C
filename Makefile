@@ -4,7 +4,7 @@ ifeq ($(OPTIMIZE), false)
 	OPTFLAGS=-g -Wall -Wextra -Werror
 	OBJDIR=build/debug
 else
-	OPTFLAGS=-O2
+	OPTFLAGS=-O3
 	OBJDIR=build/optimized
 endif
 
