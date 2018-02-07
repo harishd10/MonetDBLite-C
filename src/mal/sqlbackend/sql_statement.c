@@ -3,7 +3,7 @@
  * License, v. 2.0.  If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- * Copyright 1997 - July 2008 CWI, August 2008 - 2017 MonetDB B.V.
+ * Copyright 1997 - July 2008 CWI, August 2008 - 2018 MonetDB B.V.
  */
 
 #include "monetdb_config.h"
@@ -2900,7 +2900,7 @@ stmt_func(backend *be, stmt *ops, const char *name, sql_rel *rel, int f_union)
 }
 
 stmt *
-stmt_aggr(backend *be, stmt *op1, stmt *grp, stmt *ext, sql_subaggr *op, int reduce, int no_nil)
+stmt_aggr(backend *be, stmt *op1, stmt *grp, stmt *ext, sql_subaggr *op, int reduce, int no_nil, int nil_if_empty)
 {
 	MalBlkPtr mb = be->mb;
 	InstrPtr q = NULL;
@@ -2980,6 +2980,8 @@ stmt_aggr(backend *be, stmt *op1, stmt *grp, stmt *ext, sql_subaggr *op, int red
 			q = pushBit(mb, q, TRUE);
 	} else if (no_nil && strncmp(aggrfunc, "count", 5) == 0) {
 		q = pushBit(mb, q, no_nil);
+	} else if (!nil_if_empty && strncmp(aggrfunc, "sum", 3) == 0) {
+		q = pushBit(mb, q, FALSE);
 	}
 	if (q) {
 		stmt *s = stmt_create(be->mvc->sa, st_aggr);

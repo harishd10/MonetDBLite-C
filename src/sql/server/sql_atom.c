@@ -3,7 +3,7 @@
  * License, v. 2.0.  If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- * Copyright 1997 - July 2008 CWI, August 2008 - 2017 MonetDB B.V.
+ * Copyright 1997 - July 2008 CWI, August 2008 - 2018 MonetDB B.V.
  */
 
 #include "monetdb_config.h"
@@ -263,7 +263,7 @@ atom_general(sql_allocator *sa, sql_subtype *tpe, const char *val)
 		a->isnull = 0;
 		if (ATOMstorage(type) == TYPE_str) {
 			a->isnull = 0;
-			a->data.val.sval = (char*)sql2str(sa_strdup(sa, val));
+			a->data.val.sval = sql2str(sa_strdup(sa, val));
 			a->data.len = (int)strlen(a->data.val.sval);
 		} else { 
 			int res = ATOMfromstr(type, &p, &a->data.len, val);
