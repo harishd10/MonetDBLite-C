@@ -558,6 +558,17 @@ GENERATE_BASE_HEADERS(monetdb_data_timestamp, timestamp);
 		}                                                                      \
 	}
 
+#define GENERATE_BAT_INPUT_SOFT(b, tpe, mtype)                                 \
+	{                                                                          \
+		column_result->type = monetdb_##tpe;                                   \
+		column_result->count = BATcount(b);                                    \
+		if (b->tdense && !b->tnodense) {                                       \
+		} else {                                                               \
+			/* bat is not dense, copy it */                                    \
+			tpe* baseptr = (tpe *)Tloc(b, 0);                                  \
+			column_result->data = (void *)baseptr;                             \
+		}                                                                      \
+	}
 
 static void data_from_date(date d, monetdb_data_date *ptr);
 static void data_from_time(daytime d, monetdb_data_time *ptr);
@@ -745,6 +756,7 @@ monetdb_column* monetdb_result_fetch(monetdb_result* res, size_t column_index) {
 			j++;
 		}
 	}
+
 	BBPunfix(b->batCacheid);
 	result->converted_columns[column_index] = column_result;
 	return result->converted_columns[column_index];
@@ -766,6 +778,60 @@ void* monetdb_result_fetch_rawcol(monetdb_result* res, size_t column_index) {
 		return NULL;
 	return &(result->monetdb_resultset->cols[column_index]);
 }
+
+void monetdb_result_fetch_soft(monetdb_result* res, size_t column_index, monetdb_column* column_result) {
+	BAT* b = NULL;
+	int bat_type;
+	str msg = NULL;
+	monetdb_result_internal* result = (monetdb_result_internal*) res;
+	column_result->data = NULL;
+	if (column_index >= res->ncols) {
+		msg = GDKstrdup("Index out of range!");
+		goto wrapup;
+	}
+
+	b = BATdescriptor(result->monetdb_resultset->cols[column_index].b);
+	if (!b) {
+		msg = GDKstrdup("Malloc failure!");
+		goto wrapup;
+	}
+	
+	res_col * rcol = &(result->monetdb_resultset->cols[column_index]);
+	column_result->name = rcol->name;
+
+	bat_type = b->ttype;
+
+	if (bat_type == TYPE_bit || bat_type == TYPE_bte) {
+		GENERATE_BAT_INPUT_SOFT(b, int8_t, bte);
+	} else if (bat_type == TYPE_sht) {
+		GENERATE_BAT_INPUT_SOFT(b, int16_t, sht);
+	} else if (bat_type == TYPE_int) {
+		GENERATE_BAT_INPUT_SOFT(b, int32_t, int);
+	} else if (bat_type == TYPE_oid) {
+		GENERATE_BAT_INPUT_SOFT(b, size_t, oid);
+	} else if (bat_type == TYPE_lng) {
+		GENERATE_BAT_INPUT_SOFT(b, int64_t, lng);
+	} else if (bat_type == TYPE_flt) {
+		GENERATE_BAT_INPUT_SOFT(b, float, flt);
+	} else if (bat_type == TYPE_dbl) {
+		GENERATE_BAT_INPUT_SOFT(b, double, dbl);
+	} else {
+		// cannot perform soft fetch. monetdb_result_fetch() has to be used 
+	}
+	return;
+
+
+wrapup:
+	if (b) {
+		BBPunfix(b->batCacheid);
+	}
+	monetdb_destroy_column(column_result);
+	if (msg) {
+		// FIXME: show message somehow?
+		GDKfree(msg);
+	}
+}
+
 
 void data_from_date(date d, monetdb_data_date *ptr)
 {
