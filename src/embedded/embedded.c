@@ -832,6 +832,13 @@ wrapup:
 	}
 }
 
+char* monetdb_column_name(monetdb_result* res, size_t column_index) {
+	monetdb_result_internal* result = (monetdb_result_internal*) res;
+	if (column_index >= res->ncols) // index out of range
+		return NULL;
+	res_col *rcol = &(result->monetdb_resultset->cols[column_index]);
+	return rcol->name;
+}
 
 void data_from_date(date d, monetdb_data_date *ptr)
 {

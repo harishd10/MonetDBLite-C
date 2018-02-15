@@ -122,6 +122,7 @@ embedded_export void* monetdb_result_fetch_rawcol(monetdb_result* result, size_t
 
 // Added by Harish
 embedded_export void monetdb_result_fetch_soft(monetdb_result* result, size_t column_index, monetdb_column* column_result); // avoiding memcpy time when using non dense columns
+embedded_export char* monetdb_column_name(monetdb_result* result, size_t column_index); 
 
 embedded_export char* monetdb_append(monetdb_connection conn, const char* schema, const char* table, append_data *data, int ncols);
 embedded_export void  monetdb_cleanup_result(monetdb_connection conn, monetdb_result* result);

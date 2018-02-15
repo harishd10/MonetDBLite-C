@@ -47,7 +47,9 @@ int main(int argc, char** argv) {
 	monetdb_column *hcol0 = monetdb_result_fetch(result,0);
 	monetdb_column *hcol1 = monetdb_result_fetch(result,1);
 	printf("*************** Hard fetch ********************\n");
-	// printf("Column names: %s, %s \n", hcol0->name, hcol1->name);
+	char *name0 = monetdb_column_name(result,0);
+	char *name1 = monetdb_column_name(result,1);
+	printf("Column names: %s, %s \n", name0, name1);
 	printf("result has %d, %d rows\n", hcol0->count, hcol1->count);
 	{
 		float *fdata = (float *)hcol0->data;
