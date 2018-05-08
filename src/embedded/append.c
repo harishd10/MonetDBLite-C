@@ -52,9 +52,19 @@ char* append(void* conn, char* table, tab_data* data) {
         }
 
         BAT* bcol = COLnew(0, colType, rcol->count, TRANSIENT);
-        memcpy(bcol->theap.base, (char *)(rcol->data), rcol->size);
-        BATsetcount(bcol, rcol->count);
         BATsettrivprop(bcol);
+
+        if(colType == TYPE_str) {
+            for (size_t j = 0; j < rcol->count; j++) {
+                char* str_to_append = ((char **) rcol->data)[j];
+                if (BUNappend(bcol, str_to_append, FALSE) != GDK_SUCCEED) {
+                    return "string append error";
+                }
+            }
+        } else {
+            memcpy(bcol->theap.base, (char *)(rcol->data), rcol->size);
+        }
+        BATsetcount(bcol, rcol->count);
 
         bcol->tnil = 0;
         bcol->tnonil = 0;
