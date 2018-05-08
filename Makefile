@@ -287,13 +287,31 @@ $(shell mkdir -p $(ODIRS) $(DDIRS))
 
 LIBFILE=$(OBJDIR)/$(LIBFILENAME).$(SOEXT)
 
+MYOS = $(OS)
+
 .PHONY: all clean test init test $(LIBFILE)
 
 all: $(COBJECTS) $(LIBFILE)
 
 
 clean:
+	rm -rf tmp
+	mkdir tmp
+	mkdir tmp/opt
+	mkdir tmp/dbg
+	mv build/optimized/*.lib tmp/opt/
+	mv build/optimized/*.dll tmp/opt/
+	mv build/debug/*.lib tmp/dbg/
+	mv build/debug/*.dll tmp/dbg/
 	rm -rf build
+	mkdir build
+	mkdir build/optimized
+	mkdir build/debug
+	mv tmp/opt/*.lib build/optimized/ 
+	mv tmp/opt/*.dll build/optimized/ 
+	mv tmp/dbg/*.lib build/debug/ 
+	mv tmp/dbg/*.dll build/debug/ 
+	rm -rf tmp
 
 	
 sqlparser: src/sql/server/sql_parser.h src/sql/server/sql_parser.y
