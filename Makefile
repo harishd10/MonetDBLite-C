@@ -1,5 +1,4 @@
 OPTIMIZE=$(OPT)
-
 ifeq ($(OPTIMIZE), false)
 	OPTFLAGS=-g -Wall -Wextra -Werror
 	OBJDIR=build/debug
@@ -11,7 +10,7 @@ endif
 LIBFILENAME=libmonetdb5
 DEPSDIR=$(OBJDIR)/deps
 
-CFLAGS=-DLIBGDK -DLIBMAL -DLIBOPTIMIZER -DLIBSTREAM
+CFLAGS=-DLIBGDK -DLIBMAL -DLIBOPTIMIZER -DLIBSTREAM -DLIBSQL -std=c99
 LDFLAGS=-lm
 INCLUDE_FLAGS= -Isrc/ -Isrc/common  \
 -Isrc/embedded -Isrc/gdk \
@@ -50,6 +49,7 @@ src/sql/scripts/17_temporal.sql \
 src/sql/scripts/18_index.sql \
 src/sql/scripts/20_vacuum.sql \
 src/sql/scripts/21_dependency_functions.sql \
+src/sql/scripts/21_dependency_views.sql \
 src/sql/scripts/22_clients.sql \
 src/sql/scripts/25_debug.sql \
 src/sql/scripts/26_sysmon.sql \

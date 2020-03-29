@@ -1,5 +1,8 @@
 #include <ctype.h>
 #include <stdio.h>
+#ifndef _MSC_VER
+#include <strings.h>
+#endif
 #include "embedded.h"
 
 
@@ -59,7 +62,7 @@ static int monetdbliteQuery(
 	for (r = 0; r < rptr->nrows; r++) {
 		for (c = 0; c < rptr->ncols; c++) {
 			monetdb_column *actual_column = monetdb_result_fetch(rptr, c);
-			char buffer[BUFSIZ];
+			char* buffer = malloc(BUFSIZ);
 
 			switch(actual_column->type) {
 			case monetdb_int8_t: {
@@ -125,7 +128,7 @@ static int monetdbliteQuery(
 				fprintf(stderr, "%s\n", "UNKNOWN");
 			}
 			}
-			(*pazResult)[r*rptr->ncols + c] = strdup(buffer);
+			(*pazResult)[r*rptr->ncols + c] = buffer;
 		}
 	}
   *pnResult = rptr->ncols * rptr->nrows;

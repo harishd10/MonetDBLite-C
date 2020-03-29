@@ -39,23 +39,23 @@ OPTcandidatesImplementation(Client cntxt, MalBlkPtr mb, MalStkPtr stk, InstrPtr 
 				setVarCList(mb,getArg(p,0));
 			else if(getFunctionId(p) == subdeltaRef) 
 				setVarCList(mb,getArg(p,0));
-			else if(getFunctionId(p) == emptybindRef && p->retc == 2) 
-				setVarCList(mb,getArg(p,0));
-			else if(getFunctionId(p) == bindRef && p->retc == 2) 
-				setVarCList(mb,getArg(p,0));
 		}
 		else if( getModuleId(p) == algebraRef ){
 			if(getFunctionId(p) == selectRef || getFunctionId(p) == thetaselectRef)
 				setVarCList(mb,getArg(p,0));
 			else if(getFunctionId(p) == likeselectRef || getFunctionId(p) == likethetaselectRef)
 				setVarCList(mb,getArg(p,0));
-			else if(getFunctionId(p) == intersectRef )
+			else if(getFunctionId(p) == intersectRef || getFunctionId(p) == differenceRef )
 				setVarCList(mb,getArg(p,0));
 			else if(getFunctionId(p) == uniqueRef )
 				setVarCList(mb,getArg(p,0));
 			else if(getFunctionId(p) == firstnRef )
 				setVarCList(mb,getArg(p,0));
 			else if(getFunctionId(p) == subsliceRef )
+				setVarCList(mb,getArg(p,0));
+			else if (getFunctionId(p) == projectionRef &&
+					 isVarCList(mb,getArg(p,p->retc + 0)) &&
+					 isVarCList(mb,getArg(p,p->retc + 1)))
 				setVarCList(mb,getArg(p,0));
 		}
 		else if( getModuleId(p) == generatorRef){
@@ -78,9 +78,9 @@ OPTcandidatesImplementation(Client cntxt, MalBlkPtr mb, MalStkPtr stk, InstrPtr 
 
     /* Defense line against incorrect plans */
 	/* plan remains unaffected */
-	//chkTypes(cntxt->fdout, cntxt->nspace, mb, FALSE);
-	//chkFlow(cntxt->fdout, mb);
-	//chkDeclarations(cntxt->fdout, mb);
+	//chkTypes(cntxt->usermodule, mb, FALSE);
+	//chkFlow(mb);
+	//chkDeclarations(mb);
     /* keep all actions taken as a post block comment */
 #ifndef HAVE_EMBEDDED
 	usec = GDKusec()- usec;

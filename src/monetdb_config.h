@@ -5,14 +5,9 @@
 #ifndef _SEEN_MONETDB_CONFIG_H
 #define _SEEN_MONETDB_CONFIG_H 1
 
-
-#define SIZEOF_INT __SIZEOF_INT__
-#define SIZEOF_LONG __SIZEOF_LONG__
-#define SIZEOF_LONG_LONG __SIZEOF_LONG_LONG__
-#ifndef SIZEOF_SIZE_T
-#define SIZEOF_SIZE_T __SIZEOF_SIZE_T__
+#ifdef _MSC_VER
+#define NATIVE_WIN32
 #endif
-#define SIZEOF_VOID_P __SIZEOF_POINTER__
 
 
 #ifdef __MINGW32__
@@ -24,7 +19,39 @@
 #ifdef NATIVE_WIN32
 #include <windows.h>
 #undef ERROR
+
+
 #endif
+
+#ifdef _MSC_VER
+#define strcasecmp _stricmp 
+#define strncasecmp _strnicmp 
+#define ftruncate _chsize
+
+#define __SIZEOF_INT__ 4
+#define __SIZEOF_LONG__ 4
+#define __SIZEOF_LONG_LONG__ 8
+
+#ifndef _WIN64
+typedef long ssize_t;
+#define __SIZEOF_SIZE_T__ 4
+#define __SIZEOF_POINTER__ 4 
+#else
+typedef long long ssize_t;
+#define __SIZEOF_SIZE_T__ 8
+#define __SIZEOF_POINTER__ 8 
+#endif
+
+#endif
+
+#define SIZEOF_INT __SIZEOF_INT__
+#define SIZEOF_LONG __SIZEOF_LONG__
+#define SIZEOF_LONG_LONG __SIZEOF_LONG_LONG__
+#ifndef SIZEOF_SIZE_T
+#define SIZEOF_SIZE_T __SIZEOF_SIZE_T__
+#endif
+#define SIZEOF_VOID_P __SIZEOF_POINTER__
+
 
 
 ///* Define if building universal (internal helper macro) */
@@ -45,9 +72,6 @@
 /* Directory separator */
 #define DIR_SEP_STR "/"
 
-#define LLFMT "%lld"
-#define ULLFMT "%llu"
-
 #else
 
 /* Directory separator */
@@ -56,11 +80,10 @@
 /* Directory separator */
 #define DIR_SEP_STR "\\"
 
-#define LLFMT "%I64d"
-#define ULLFMT "%I64u"
-
 #endif
 
+
+#define HAVE_INTTYPES_H 1
 
 /* Define to nothing if C supports flexible array members, and to 1 if it does
    not. That way, with a declaration like `struct s { int n; double
@@ -184,9 +207,6 @@
 /* Define to 1 if the system has the type `intptr_t'. */
 #define HAVE_INTPTR_T 0
 
-/* Define to 1 if you have the <inttypes.h> header file. */
-#define HAVE_INTTYPES_H 1
-
 /* Define to 1 if you have the <io.h> header file. */
 /* #undef HAVE_IO_H */
 
@@ -226,9 +246,6 @@
 
 /* Define to 1 if you have the `lockf' function. */
 #define HAVE_LOCKF 1
-
-/* Define to 1 if the system has the type `long long'. */
-#define HAVE_LONG_LONG 1
 
 /* Define to 1 if you have the <mach/mach_init.h> header file. */
 #define HAVE_MACH_MACH_INIT_H 1
@@ -765,17 +782,11 @@ typedef size_t uintptr_t;
 #define SLASH_2_DIR_SEP(s) {char *t; for(t=strchr(s, '/'    ); t; t=strchr(t+1, '/'    )) *t=DIR_SEP;}
 #define DIR_SEP_2_SLASH(s) {char *t; for(t=strchr(s, DIR_SEP); t; t=strchr(t+1, DIR_SEP)) *t='/'    ;}
 
-#ifdef HAVE_LONG_LONG
-typedef long long lng;
-typedef unsigned long long ulng;
-# define SIZEOF_LNG SIZEOF_LONG_LONG
-#else
-# ifdef HAVE___INT64
-typedef __int64 lng;
-typedef unsigned __int64 ulng;
-#  define SIZEOF_LNG SIZEOF___INT64
-# endif
-#endif
+#include <inttypes.h>
+
+typedef int64_t lng;
+typedef uint64_t ulng;
+
 
 #ifdef HAVE___INT128
 typedef __int128 hge;
@@ -877,6 +888,27 @@ typedef lng ptrdiff_t;
 
 #define PROMPT1		"\001\001\n"	/* prompt: ready for new query */
 #define PROMPT2		"\001\002\n"	/* prompt: more data needed */
+
+// unset a bunch of stuff unsupported by VS
+#ifdef _MSC_VER
+#undef HAVE_CTIME_R
+#undef HAVE_GETTIMEOFDAY
+#undef HAVE_LIBPTHREAD
+#undef HAVE_PTHREAD_H
+#undef HAVE_PTHREAD_KILL
+#undef HAVE_SCHED_H
+#undef HAVE_SEMAPHORE_H
+#undef HAVE_STRINGS_H
+#undef HAVE_STRNCASECMP
+#undef HAVE_SYS_FILE_H
+#undef HAVE_SYS_PARAM_H
+#undef HAVE_SYS_TIME_H
+#undef HAVE_UNISTD_H
+#undef HAVE_DIRENT_H
+#undef TIME_WITH_SYS_TIME
+
+#endif
+
 
 #endif /* _SEEN_MONETDB_CONFIG_H */
 

@@ -9,8 +9,15 @@
 #ifndef _GDK_SYSTEM_H_
 #define _GDK_SYSTEM_H_
 
-// greatly simplified
+#ifdef NATIVE_WIN32
+#ifndef LIBGDK
+#define gdk_export extern __declspec(dllimport)
+#else
+#define gdk_export extern __declspec(dllexport)
+#endif
+#else
 #define gdk_export extern
+#endif
 
 /*
  * @- pthreads Includes and Definitions
@@ -24,17 +31,6 @@
 #endif
 #include <sched.h>
 #include <pthread.h>
-#ifndef WIN32
-/* Linux gprof messes up on multithreaded programs */
-#ifdef PROFILE
-/* Linux gprof messes up on multithreaded programs */
-gdk_export int gprof_pthread_create(pthread_t * __restrict,
-				    __const pthread_attr_t * __restrict,
-				    void *(*fcn) (void *),
-				    void *__restrict);
-#define pthread_create gprof_pthread_create
-#endif
-#endif
 #endif
 
 #ifdef HAVE_SEMAPHORE_H
@@ -47,7 +43,6 @@ gdk_export int gprof_pthread_create(pthread_t * __restrict,
 #ifdef HAVE_SYS_SYSCTL_H
 # include <sys/sysctl.h>
 #endif
-
 
 /* new pthread interface, where the thread id changed to a struct */
 #ifdef PTW32_VERSION
@@ -88,7 +83,16 @@ gdk_export int MT_join_thread(MT_Id t);
 /*
  * @- MT Lock API
  */
-
+#if !defined(HAVE_PTHREAD_H) && defined(WIN32)
+typedef HANDLE pthread_mutex_t;
+typedef void *pthread_mutexattr_t;
+gdk_export void pthread_mutex_init(pthread_mutex_t *,
+				   const pthread_mutexattr_t *);
+gdk_export void pthread_mutex_destroy(pthread_mutex_t *);
+gdk_export int pthread_mutex_lock(pthread_mutex_t *);
+gdk_export int pthread_mutex_trylock(pthread_mutex_t *);
+gdk_export int pthread_mutex_unlock(pthread_mutex_t *);
+#endif
 
 #include "gdk_atomic.h"
 
@@ -273,21 +277,27 @@ gdk_export ATOMIC_TYPE volatile GDKlocksleepcnt;
 /*
  * @- MT Semaphore API
  */
+/*
+ * @- MT Semaphore API
+ */
 
+
+
+#if !defined(HAVE_PTHREAD_H) && defined(_MSC_VER)
+typedef HANDLE pthread_sema_t;
+#else
 typedef struct {
 	int cnt;
 	pthread_mutex_t mutex;
 	pthread_cond_t cond;
 } pthread_sema_t;
-
-#if !defined(HAVE_PTHREAD_H) && defined(WIN32)
-typedef HANDLE pthread_sema_t;
 #endif
 
 gdk_export void pthread_sema_init(pthread_sema_t *s, int flag, int nresources);
 gdk_export void pthread_sema_destroy(pthread_sema_t *s);
 gdk_export void pthread_sema_up(pthread_sema_t *s);
 gdk_export void pthread_sema_down(pthread_sema_t *s);
+
 
 
 typedef struct {
@@ -317,14 +327,5 @@ typedef struct {
 	} while (0)
 
 gdk_export int MT_check_nr_cores(void);
-
-/*
- * @- Timers
- * The following relative timers are available for inspection.
- * Note that they may consume recognizable overhead.
- *
- */
-gdk_export lng GDKusec(void);
-gdk_export int GDKms(void);
 
 #endif /*_GDK_SYSTEM_H_*/

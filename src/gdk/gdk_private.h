@@ -29,21 +29,23 @@ enum heaptype {
 __hidden gdk_return ATOMheap(int id, Heap *hp, size_t cap)
 	__attribute__ ((__warn_unused_result__))
 	__attribute__((__visibility__("hidden")));
-__hidden int ATOMisdescendant(int id, int parentid)
+__hidden bool ATOMisdescendant(int id, int parentid)
 	__attribute__((__visibility__("hidden")));
 __hidden int ATOMunknown_find(const char *nme)
 	__attribute__ ((__warn_unused_result__))
 	__attribute__((__visibility__("hidden")));
 __hidden str ATOMunknown_name(int a)
 	__attribute__((__visibility__("hidden")));
-__hidden int BATcheckhash(BAT *b)
+__hidden void ATOMunknown_clean(void)
 	__attribute__((__visibility__("hidden")));
-__hidden int BATcheckimprints(BAT *b)
+__hidden bool BATcheckhash(BAT *b)
 	__attribute__((__visibility__("hidden")));
-__hidden gdk_return BATcheckmodes(BAT *b, int persistent)
-	__attribute__ ((__warn_unused_result__))
+__hidden bool BATcheckimprints(BAT *b)
 	__attribute__((__visibility__("hidden")));
-__hidden int BATcheckorderidx(BAT *b)
+__hidden gdk_return BATcheckmodes(BAT *b, bool persistent)
+	__attribute__((__warn_unused_result__))
+	__attribute__((__visibility__("hidden")));
+__hidden bool BATcheckorderidx(BAT *b)
 	__attribute__((__visibility__("hidden")));
 
 __hidden BAT *BATcreatedesc(oid hseq, int tt, int heapnames, int role)
@@ -59,7 +61,7 @@ __hidden gdk_return BATgroup_internal(BAT **groups, BAT **extents, BAT **histo, 
 	__attribute__((__visibility__("hidden")));
 __hidden void BATinit_idents(BAT *bn)
 	__attribute__((__visibility__("hidden")));
-__hidden BAT *BATload_intern(bat bid, int lock)
+__hidden BAT *BATload_intern(bat bid, bool lock)
 	__attribute__((__visibility__("hidden")));
 __hidden gdk_return BATmaterialize(BAT *b)
 	__attribute__ ((__warn_unused_result__))
@@ -69,12 +71,9 @@ __hidden gdk_return BATsave(BAT *b)
 	__attribute__((__visibility__("hidden")));
 __hidden void BATsetdims(BAT *b)
 	__attribute__((__visibility__("hidden")));
-__hidden size_t BATvmsize(BAT *b, int dirty)
+__hidden gdk_return BBPcacheit(BAT *bn, bool lock)
+	__attribute__((__warn_unused_result__))
 	__attribute__((__visibility__("hidden")));
-__hidden gdk_return BBPcacheit(BAT *bn, int lock)
-	__attribute__ ((__warn_unused_result__))
-	__attribute__((__visibility__("hidden")));
-void BBPdump(void);		/* never called: for debugging only */
 __hidden void BBPexit(void)
 	__attribute__((__visibility__("hidden")));
 __hidden BAT *BBPgetdesc(bat i)
@@ -147,21 +146,21 @@ __hidden gdk_return GDKremovedir(int farmid, const char *nme)
 __hidden gdk_return GDKsave(int farmid, const char *nme, const char *ext, void *buf, size_t size, storage_t mode, int dosync)
 	__attribute__ ((__warn_unused_result__))
 	__attribute__((__visibility__("hidden")));
-__hidden gdk_return GDKssort_rev(void *h, void *t, const void *base, size_t n, int hs, int ts, int tpe)
-	__attribute__ ((__warn_unused_result__))
+__hidden gdk_return GDKssort_rev(void *restrict h, void *restrict t, const void *restrict base, size_t n, int hs, int ts, int tpe)
+	__attribute__((__warn_unused_result__))
 	__attribute__((__visibility__("hidden")));
-__hidden gdk_return GDKssort(void *h, void *t, const void *base, size_t n, int hs, int ts, int tpe)
-	__attribute__ ((__warn_unused_result__))
+__hidden gdk_return GDKssort(void *restrict h, void *restrict t, const void *restrict base, size_t n, int hs, int ts, int tpe)
+	__attribute__((__warn_unused_result__))
 	__attribute__((__visibility__("hidden")));
 __hidden gdk_return GDKunlink(int farmid, const char *dir, const char *nme, const char *extension)
 	__attribute__((__visibility__("hidden")));
 __hidden void HASHfree(BAT *b)
 	__attribute__((__visibility__("hidden")));
-__hidden int HASHgonebad(BAT *b, const void *v)
+__hidden bool HASHgonebad(BAT *b, const void *v)
 	__attribute__((__visibility__("hidden")));
 __hidden BUN HASHmask(BUN cnt)
 	__attribute__((__visibility__("hidden")));
-__hidden Hash *HASHnew(Heap *hp, int tpe, BUN size, BUN mask, BUN count)
+__hidden gdk_return HASHnew(Hash *h, int tpe, BUN size, BUN mask, BUN count)
 	__attribute__((__visibility__("hidden")));
 __hidden gdk_return HEAPalloc(Heap *h, size_t nitems, size_t itemsize)
 	__attribute__ ((__warn_unused_result__))
@@ -169,7 +168,7 @@ __hidden gdk_return HEAPalloc(Heap *h, size_t nitems, size_t itemsize)
 __hidden gdk_return HEAPcopy(Heap *dst, Heap *src)
 	__attribute__ ((__warn_unused_result__))
 	__attribute__((__visibility__("hidden")));
-__hidden int HEAPdelete(Heap *h, const char *o, const char *ext)
+__hidden gdk_return HEAPdelete(Heap *h, const char *o, const char *ext)
 	__attribute__((__visibility__("hidden")));
 __hidden void HEAPfree(Heap *h, int remove)
 	__attribute__((__visibility__("hidden")));
@@ -223,7 +222,7 @@ __hidden gdk_return VIEWreset(BAT *b)
 	__attribute__((__visibility__("hidden")));
 __hidden BAT *virtualize(BAT *bn)
 	__attribute__((__visibility__("hidden")));
-__hidden int binsearchcand(const oid *cand, BUN lo, BUN hi, oid v)
+__hidden bool binsearchcand(const oid *cand, BUN lo, BUN hi, oid v)
 	__attribute__((__visibility__("hidden")));
 __hidden void gdk_bbp_reset(void)
 	__attribute__((__visibility__("hidden")));
@@ -241,7 +240,7 @@ struct PROPrec {
 
 struct Imprints {
 	bte bits;		/* how many bits in imprints */
-	Heap *imprints;
+	Heap imprints;
 	void *bins;		/* pointer into imprints heap (bins borders)  */
 	BUN *stats;		/* pointer into imprints heap (stats per bin) */
 	void *imps;		/* pointer into imprints heap (bit vectors)   */
@@ -320,67 +319,3 @@ extern MT_Lock MT_system_lock;
  * incompatible) */
 #define EXTRALEN ((SIZEOF_BUN + GDK_VARALIGN - 1) & ~(GDK_VARALIGN - 1))
 
-#if !defined(NDEBUG) && !defined(STATIC_CODE_ANALYSIS)
-/* see comment in gdk.h */
-#ifdef __GNUC__
-#define GDKmunmap(p, l)							\
-	({	void *_ptr = (p);					\
-		size_t _len = (l);					\
-		gdk_return _res = GDKmunmap(_ptr, _len);		\
-		ALLOCDEBUG						\
-			fprintf(stderr,					\
-				"#GDKmunmap(" PTRFMT "," SZFMT ") -> %d" \
-				" %s[%s:%d]\n",				\
-				PTRFMTCAST _ptr, _len, _res,		\
-				__func__, __FILE__, __LINE__);		\
-		_res;							\
-	})
-#define GDKmremap(p, m, oa, os, ns)					\
-	({								\
-		const char *_path = (p);				\
-		int _mode = (m);					\
-		void *_oa = (oa);					\
-		size_t _os = (os);					\
-		size_t *_ns = (ns);					\
-		size_t _ons = *_ns;					\
-		void *_res = GDKmremap(_path, _mode, _oa, _os, _ns);	\
-		ALLOCDEBUG						\
-			fprintf(stderr,					\
-				"#GDKmremap(%s,0x%x," PTRFMT "," SZFMT "," SZFMT " > " SZFMT ") -> " PTRFMT \
-				" %s[%s:%d]\n",				\
-				_path ? _path : "NULL", _mode,		\
-				PTRFMTCAST _oa, _os, _ons, *_ns,	\
-				PTRFMTCAST _res,			\
-				__func__, __FILE__, __LINE__);		\
-		_res;							\
-	 })
-#else
-static inline gdk_return
-GDKmunmap_debug(void *ptr, size_t len, const char *filename, int lineno)
-{
-	gdk_return res = GDKmunmap(ptr, len);
-	ALLOCDEBUG fprintf(stderr,
-			   "#GDKmunmap(" PTRFMT "," SZFMT ") -> %d [%s:%d]\n",
-			   PTRFMTCAST ptr, len, (int) res, filename, lineno);
-	return res;
-}
-#define GDKmunmap(p, l)		GDKmunmap_debug((p), (l), __FILE__, __LINE__)
-static inline void *
-GDKmremap_debug(const char *path, int mode, void *old_address, size_t old_size, size_t *new_size, const char *filename, int lineno)
-{
-	size_t orig_new_size = *new_size;
-	void *res = GDKmremap(path, mode, old_address, old_size, new_size);
-	ALLOCDEBUG
-		fprintf(stderr,
-			"#GDKmremap(%s,0x%x," PTRFMT "," SZFMT "," SZFMT " > " SZFMT ") -> " PTRFMT
-			" [%s:%d]\n",
-			path ? path : "NULL", mode,
-			PTRFMTCAST old_address, old_size, orig_new_size, *new_size,
-			PTRFMTCAST res,
-			filename, lineno);
-	return res;
-}
-#define GDKmremap(p, m, oa, os, ns)	GDKmremap_debug(p, m, oa, os, ns, __FILE__, __LINE__)
-
-#endif
-#endif

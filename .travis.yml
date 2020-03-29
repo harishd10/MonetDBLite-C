@@ -14,11 +14,11 @@ matrix:
       osx_image: xcode8.3
 
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode9.3
 
     - os: linux
       addons:
-        apt:
+         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
@@ -45,6 +45,26 @@ matrix:
             - g++-6
       env:
         - MATRIX_EVAL="export CC=gcc-6"
+
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="export CC=gcc-7"
+
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+      env:
+        - MATRIX_EVAL="export CC=gcc-8"
  
     - os: linux
       addons:
