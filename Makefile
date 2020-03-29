@@ -1,10 +1,10 @@
 OPTIMIZE=$(OPT)
 ifeq ($(OPTIMIZE), false)
 	OPTFLAGS=-g -Wall -Wextra -Werror
-	OBJDIR=build/debug
+	OBJDIR=build/Debug
 else
 	OPTFLAGS=-O3
-	OBJDIR=build/optimized
+	OBJDIR=build/Release
 endif
 
 LIBFILENAME=libmonetdb5
